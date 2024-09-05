@@ -25,7 +25,7 @@ def add_user(nome_fantasia, email, cnpj, telefone, password):
         return {"message": "A academia, agora, está apta a utilizar nosso serviço!"}
     except Exception as e:
         return {"error": str(e)}
-# Função para obter um documento
+    
 def get_user(user_id):
     try:
         db = current_app.config['FIRESTORE_DB']
@@ -38,7 +38,7 @@ def get_user(user_id):
     except Exception as e:
         return {"error": str(e)}
 
-# Função para atualizar um documento
+
 def update_user(user_id, user_data):
     try:
         db = current_app.config['FIRESTORE_DB']
@@ -47,7 +47,7 @@ def update_user(user_id, user_data):
     except Exception as e:
         return {"error": str(e)}
 
-# Função para excluir um documento
+
 def delete_user(user_id):
     try:
         db = current_app.config['FIRESTORE_DB']
@@ -55,3 +55,29 @@ def delete_user(user_id):
         return {"message": "Usuário excluído com sucesso!"}
     except Exception as e:
         return {"error": str(e)}
+    
+    
+def verify_user(cnpj, password):
+    try:
+        db = firestore.client()
+
+        
+        user_ref = db.collection('academias').where('cnpj', '==', cnpj).limit(1).stream()
+        user_doc = next(user_ref, None)
+
+
+        if not user_doc:
+            return {"error": "Usuário não encontrado"}, 404
+
+
+        user_data = user_doc.to_dict()
+        stored_pass = user_data['password']
+
+
+        if bcrypt.checkpw(password.encode('utf-8'), stored_pass.encode('utf-8')):
+            return {"message": "Login bem-sucedido!"}, 200
+        else:
+            return {"error": "Senha incorreta"}, 401
+
+    except Exception as e:
+        return {"error": str(e)}, 500   

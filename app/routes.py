@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from .firestore_services import add_user, get_user, update_user, delete_user
+from .firestore_services import add_user, get_user, update_user, delete_user, verify_user
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -33,3 +33,24 @@ def update_user_route(user_id):
 def delete_user_route(user_id):
     response = delete_user(user_id)
     return jsonify(response), 200 if 'message' in response else 400
+
+@auth_bp.route('/loginAcad', methods=['POST'])
+def login_route():
+    try:
+
+        data = request.get_json()
+
+        # Verifica se o JSON é válido e contém email e senha
+        if not data or 'cnpj' not in data or 'password' not in data:
+            return jsonify({"error": "CNPJ e senha são obrigatórios."}), 400
+
+        cnpj = data['cnpj']
+        password = data['password']
+
+        # Chama a função de verificação de login
+        response, status_code = verify_user(cnpj, password)
+
+        return jsonify(response), status_code
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

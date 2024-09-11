@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+
 from .firestore_services import add_user, get_user, update_user, delete_user, verify_user
 
 auth_bp = Blueprint('auth', __name__)

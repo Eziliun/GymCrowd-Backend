@@ -6,11 +6,14 @@ def create_app():
     
     # Configurações do Flask
     app.config.from_object('config')
-
-    # Inicializar Firebase
-    db = initialize_firebase()
     
-    app.config['FIRESTORE_DB'] = db
+    db = initialize_firebase()
+    app.config['FIREBASE_DB'] = db
+
+
+    from .routes import auth_bp
+    app.register_blueprint(auth_bp)
+
 
     # Importa as rotas
     from .routes import auth_bp

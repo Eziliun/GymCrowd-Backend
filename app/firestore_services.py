@@ -29,6 +29,7 @@ def add_user(nome_fantasia, email, cnpj, telefone, password):
     except Exception as e:
         return {"error": str(e)}
     
+    
 def get_user(user_id):
     try:
         db = current_app.config['FIRESTORE_DB']
@@ -41,7 +42,7 @@ def get_user(user_id):
     except Exception as e:
         return {"error": str(e)}
 
-
+      
 def update_user(user_id, user_data):
     try:
         db = current_app.config['FIRESTORE_DB']
@@ -50,13 +51,14 @@ def update_user(user_id, user_data):
     except Exception as e:
         return {"error": str(e)}
 
-
+      
 def delete_user(user_id):
     try:
         db = current_app.config['FIRESTORE_DB']
         db.collection('users').document(user_id).delete()
         return {"message": "Usuário excluído com sucesso!"}
     except Exception as e:
+
         return {"error": str(e)}
     
     
@@ -94,3 +96,4 @@ def verify_user(cnpj, password):
 
     except Exception as e:
         return {"error": str(e)}, 500   
+

@@ -1,7 +1,10 @@
 from flask import current_app
 from firebase_admin import firestore
+from datetime import datetime, timedelta
+import jwt
 import bcrypt
 
+SECRET_KEY = "sua_chave_secreta_super_secreta"
 
 def add_user(nome_fantasia, email, cnpj, telefone, password):
     try:
@@ -75,8 +78,18 @@ def verify_user(cnpj, password):
 
 
         if bcrypt.checkpw(password.encode('utf-8'), stored_pass.encode('utf-8')):
-            return {"message": "Login bem-sucedido!"}, 200
-        else:
+            
+            token = jwt.encode(
+                {
+                "cnpj": cnpj,
+                "expiration": (datetime.now() + timedelta(hours=1)).timestamp()
+                },
+                SECRET_KEY,
+                algorithm="HS256"
+            )
+            
+            return {"message": "Login bem-sucedido!", "token": token}, 200 
+        else:    
             return {"error": "Senha incorreta"}, 401
 
     except Exception as e:

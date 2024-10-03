@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 
-from .firestore_services import add_acad, get_acad, update_acad, delete_acad, verify_user, verify_acad, add_user
+from .firestore_services import add_acad, get_acad, update_acad, delete_acad, verify_user, verify_acad, add_user, get_all_users, get_user, get_all_acads
 from .decorators import token_required
 
 auth_bp = Blueprint('auth', __name__)
@@ -21,16 +21,35 @@ def register_acad_route():
     return jsonify(response), 200 if 'message' in response else 400
 
 
-@auth_bp.route('/get-user/<user_id>', methods=['GET'])
-def get_user_route(user_id):
-    response = get_acad(user_id)
-    return jsonify(response), 200 if 'error' not in response else 404
+@auth_bp.route('/get_acad/<string:cnpj>', methods=['GET'])
+def get_academia(cnpj):
+    try:
+        response, status_code = get_acad(cnpj)
+        return jsonify(response), status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@auth_bp.route('/get_all_acads', methods=['GET'])
+def get_all_acads_route():
+    try:
+        response, status_code = get_all_acads()
+        return jsonify(response), status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-@auth_bp.route('/update-user/<user_id>', methods=['PUT'])
-def update_user_route(user_id):
-    user_data = request.get_json()
-    response = update_acad(user_id, user_data)
-    return jsonify(response), 200 if 'message' in response else 400
+@auth_bp.route('/update_acad/<string:cnpj>', methods=['PUT'])
+def update_academia(cnpj):
+    try:
+        data = request.get_json()
+
+        if not data or not isinstance(data, dict):
+            return jsonify({"error": "Dados atualizados devem ser fornecidos em formato JSON."}), 400
+
+        response, status_code = update_acad(cnpj, data)
+        return jsonify(response), status_code
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @auth_bp.route('/delete-user/<user_id>', methods=['DELETE'])
 def delete_user_route(user_id):
@@ -57,7 +76,7 @@ def login_acad_route():
 
 
 
-                                                                                    #MOBILE#    
+                                                        #MOBILE#    
 @auth_bp.route('/register_user', methods=['POST'])
 def register_user_route():
     data = request.get_json(force=True)
@@ -87,5 +106,22 @@ def login_user_route():
 
         return jsonify(response), status_code
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@auth_bp.route('/get_user/<string:cpf>', methods=['GET'])
+def get_user_route(cpf):
+    try:
+        response, status_code = get_user(cpf)
+        return jsonify(response), status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@auth_bp.route('/get_all_users', methods=['GET'])
+def get_all_users_route():
+    try:
+        response, status_code = get_all_users()
+        return jsonify(response), status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500

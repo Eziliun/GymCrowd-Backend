@@ -30,26 +30,56 @@ def add_acad(nome_fantasia, email, cnpj, telefone, password):
         return {"error": str(e)}
     
     
-def get_acad(user_id):
+def get_acad(cnpj):
     try:
-        db = current_app.config['FIRESTORE_DB']
-        user_ref = db.collection('users').document(user_id)
-        user = user_ref.get()
-        if user.exists:
-            return user.to_dict()
-        else:
-            return {"error": "Usuário não encontrado."}
+        db = firestore.client()
+
+        academia_ref = db.collection('academias').where('cnpj', '==', cnpj).limit(1).stream()
+        academia_doc = next(academia_ref, None)
+
+        if not academia_doc:
+            return {"error": "Academia não encontrada"}, 404
+
+        academia_data = academia_doc.to_dict()
+        return academia_data, 200
+
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": str(e)}, 500
+    
+def get_all_acads():
+    try:
+        db = firestore.client()
+
+        acads = []
+        acads_ref = db.collection('academias').stream()
+        for acad in acads_ref:
+            acad_data = acad.to_dict()
+            acad_data['id'] = acad.id
+            acad_data.pop('password', None)
+            acads.append(acad_data)
+
+        return {"Acads": acads}, 200
+
+    except Exception as e:
+        return {"error": str(e)}, 500
 
       
-def update_acad(user_id, user_data):
+def update_acad(cnpj, new_data):
     try:
-        db = current_app.config['FIRESTORE_DB']
-        db.collection('users').document(user_id).update(user_data)
-        return {"message": "Usuário atualizado com sucesso!"}
+        db = firestore.client()
+
+        academia_ref = db.collection('academias').where('cnpj', '==', cnpj).limit(1).stream()
+        academia_doc = next(academia_ref, None)
+
+        if not academia_doc:
+            return {"error": "Academia não encontrada"}, 404
+
+        academia_data = academia_doc.to_dict()
+        db.collection('academias').document(academia_data['nome_fantasia']).update(new_data)
+        return {"message": "Informações da academia atualizadas com sucesso!"}, 200
+
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": str(e)}, 500
 
       
 def delete_acad(user_id):
@@ -109,9 +139,9 @@ def add_user(nome_usuario, email, cpf, password):
         en_password = bcrypt.hashpw(password.encode('utf-8'), salt)
         
         user_data = {
-            'nome_fantasia': nome_usuario,
+            'nome_usuario': nome_usuario,
             'email': email,
-            'cnpj': cpf,
+            'cpf': cpf,
             #'telefone': telefone,
             'password': en_password.decode('utf8')
         }
@@ -122,25 +152,53 @@ def add_user(nome_usuario, email, cpf, password):
         return {"error": str(e)}
 
 
+def get_user(cpf):
+    try:
+        db = firestore.client()
+
+        academia_ref = db.collection('users').where('cpf', '==', cpf).limit(1).stream()
+        academia_doc = next(academia_ref, None)
+
+        if not academia_doc:
+            return {"error": "Usuário não identificado"}, 404
+
+        academia_data = academia_doc.to_dict()
+        return academia_data, 200
+
+    except Exception as e:
+        return {"error": str(e)}, 500
+    
+def get_all_users():
+    try:
+        db = firestore.client()
+
+        users = []
+        users_ref = db.collection('users').stream()
+        for user in users_ref:
+            user_data = user.to_dict()
+            user_data['id'] = user.id
+            user_data.pop('password', None)
+            users.append(user_data)
+
+        return {"users": users}, 200
+
+    except Exception as e:
+        return {"error": str(e)}, 500
 
 
 
 def verify_user(email, password):
     try:
         db = firestore.client()
-
         
         user_ref = db.collection('users').where('email', '==', email).limit(1).stream()
         user_doc = next(user_ref, None)
 
-
         if not user_doc:
             return {"error": "Usuário não encontrado"}, 404
 
-
         user_data = user_doc.to_dict()
         stored_pass = user_data['password']
-
 
         if bcrypt.checkpw(password.encode('utf-8'), stored_pass.encode('utf-8')):
             

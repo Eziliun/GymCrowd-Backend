@@ -211,10 +211,11 @@ def verify_user(email, password):
                 algorithm="HS256"
             )
             
-            return {"message": "Login bem-sucedido!", "token": token}, 200 
+            return {"message": "Login bem-sucedido!", "token": token, "nome de usuario": user_data['nome_fantasia'], "email": user_data['email']}, 200 
         else:    
             return {"error": "Senha incorreta"}, 401
 
     except Exception as e:
         return {"error": str(e)}, 500   
+    
     

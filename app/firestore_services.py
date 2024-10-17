@@ -212,7 +212,7 @@ def verify_user(email, password):
             )
             
             return {
-                "nome de usuario": user_data['nome_usuario'],
+                "nome_usuario": user_data['nome_usuario'],
                 "email": user_data['email'],
                 "token": token,
                 "message": "Login bem-sucedido!"}, 200 

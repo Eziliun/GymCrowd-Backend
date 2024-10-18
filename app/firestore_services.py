@@ -22,13 +22,73 @@ def add_acad(nome_fantasia, email, cnpj, telefone, password):
             'telefone': telefone,
             'password': en_password.decode('utf8')
         }
-
-
+        
         db.collection('academias').document(nome_fantasia).set(user_data)
         return {"message": "A academia, agora, está apta a utilizar nosso serviço!"}
     except Exception as e:
         return {"error": str(e)}
+
+def add_sede(nome_fantasia, email, cnpj, telefone, password):
+    try:
+        db = firestore.client()
+        
+        
+        salt = bcrypt.gensalt()
+        en_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+        
     
+        user_data = {
+            'nome_fantasia': nome_fantasia,
+            'email': email,
+            'cnpj': cnpj,
+            'telefone': telefone,
+            'filiais': [],
+            'password': en_password.decode('utf8')
+        }
+
+
+        db.collection('sedes').document(cnpj).set(user_data)
+        return {"message": "A academia, agora, está apta a utilizar nosso serviço!"}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+def add_filial(cnpj_matriz, nome_fantasia, email, cnpj, telefone, password):
+    try:
+        db = firestore.client()
+
+        sede_ref = db.collection('sedes').where('cnpj', '==', cnpj_matriz).limit(1).stream()
+        sede_doc = next(sede_ref, None)
+        sede_data = sede_doc.to_dict()
+
+        if not sede_doc:
+            return {"error": "A sede não foi encontrada"}, 404
+        
+        salt = bcrypt.gensalt()
+        en_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+        
+    
+        user_data = {
+            'nome_fantasia': nome_fantasia,
+            'email': email,
+            'cnpj': cnpj,
+            'telefone': telefone,
+            'password': en_password.decode('utf8')
+        }
+
+        db.collection('academias').document(cnpj).set(user_data)
+        db.collection('sedes').document(cnpj_matriz).update({
+            'filiais':{
+                'nome_fantasia': nome_fantasia,
+                'email': email,
+                'cnpj': cnpj,
+                'telefone': telefone
+            }
+        })
+        return {"message": "A filial foi adicionada com sucesso e agora, está apta a utilizar nosso serviço!"}
+    except Exception as e:
+        return {"error": str(e)}
+
     
 def get_acad(cnpj):
     try:

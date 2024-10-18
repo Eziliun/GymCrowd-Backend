@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 
-from .firestore_services import add_acad, get_acad, update_acad, delete_acad, verify_user, verify_acad, add_user, get_all_users, get_user, get_all_acads
+from .firestore_services import add_filial, add_sede, add_acad, get_acad, update_acad, delete_acad, verify_user, verify_acad, add_user, get_all_users, get_user, get_all_acads
 from .decorators import token_required
 
 auth_bp = Blueprint('auth', __name__)
@@ -18,6 +18,37 @@ def register_acad_route():
         return jsonify({"error": "cnpj e senha são obrigatórios"}), 400
     
     response = add_acad(nome_fantasia, email, cnpj, telefone, password)
+    return jsonify(response), 200 if 'message' in response else 400
+
+
+@auth_bp.route('/register_filial', methods=['POST'])
+def register_filial_acad():
+    data = request.get_json(force=True)
+    cnpj_matriz = data.get('cnpj_matriz')
+    nome_fantasia = data.get('nome_fantasia')
+    email = data.get('email')
+    cnpj = data.get('cnpj')
+    telefone = data.get('telefone')
+    password = data.get('password')
+    if not cnpj or not password:
+        return jsonify({"error": "cnpj e senha são obrigatórios"}), 400
+    
+    response = add_filial(cnpj_matriz, nome_fantasia, email, cnpj, telefone, password)
+    return jsonify(response), 200 if 'message' in response else 400
+
+
+@auth_bp.route('/register_sede', methods=['POST'])
+def register_sede_route():
+    data = request.get_json(force=True)
+    nome_fantasia = data.get('nome_fantasia')
+    email = data.get('email')
+    cnpj = data.get('cnpj')
+    telefone = data.get('telefone')
+    password = data.get('password')
+    if not cnpj or not password:
+        return jsonify({"error": "cnpj e senha são obrigatórios"}), 400
+    
+    response = add_sede(nome_fantasia, email, cnpj, telefone, password)
     return jsonify(response), 200 if 'message' in response else 400
 
 

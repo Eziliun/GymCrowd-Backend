@@ -42,7 +42,6 @@ def add_sede(nome_fantasia, email, cnpj, telefone, password):
             'email': email,
             'cnpj': cnpj,
             'telefone': telefone,
-            'filiais': [],
             'password': en_password.decode('utf8')
         }
 
@@ -53,39 +52,22 @@ def add_sede(nome_fantasia, email, cnpj, telefone, password):
         return {"error": str(e)}
 
 
-def add_filial(cnpj_matriz, nome_fantasia, email, cnpj, telefone, password):
+def add_filial(cnpj_matriz, nome_fantasia, endereco, lotacao):
     try:
         db = firestore.client()
-
-        sede_ref = db.collection('sedes').where('cnpj', '==', cnpj_matriz).limit(1).stream()
-        sede_doc = next(sede_ref, None)
-        sede_data = sede_doc.to_dict()
-
-        if not sede_doc:
-            return {"error": "A sede não foi encontrada"}, 404
-        
-        salt = bcrypt.gensalt()
-        en_password = bcrypt.hashpw(password.encode('utf-8'), salt)
-        
+     
     
         user_data = {
             'nome_fantasia': nome_fantasia,
-            'email': email,
-            'cnpj': cnpj,
-            'telefone': telefone,
-            'password': en_password.decode('utf8')
+            'endereco': endereco,
+            'cnpj_matriz': cnpj_matriz,
+            'lotacao': lotacao,
+            'latitude': '',
+            'longitude':  '',
         }
 
-        db.collection('academias').document(cnpj).set(user_data)
-        db.collection('sedes').document(cnpj_matriz).update({
-            'filiais':{
-                'nome_fantasia': nome_fantasia,
-                'email': email,
-                'cnpj': cnpj,
-                'telefone': telefone
-            }
-        })
-        return {"message": "A filial foi adicionada com sucesso e agora, está apta a utilizar nosso serviço!"}
+        db.collection('academias').document(nome_fantasia).set(user_data)
+        return {"message": "A filial foi adicionada com sucesso!"}
     except Exception as e:
         return {"error": str(e)}
 
@@ -106,6 +88,7 @@ def get_acad(cnpj):
     except Exception as e:
         return {"error": str(e)}, 500
     
+    
 def get_all_acads():
     try:
         db = firestore.client()
@@ -122,20 +105,38 @@ def get_all_acads():
 
     except Exception as e:
         return {"error": str(e)}, 500
-
-      
-def update_acad(cnpj, new_data):
+    
+    
+def get_all_filiais(cnpj_matriz):
     try:
         db = firestore.client()
 
-        academia_ref = db.collection('academias').where('cnpj', '==', cnpj).limit(1).stream()
+        acads = []
+        acads_ref = db.collection('academias').where('cnpj_matriz' == cnpj_matriz).stream()
+        for acad in acads_ref:
+            acad_data = acad.to_dict()
+            acad_data['id'] = acad.id
+            acad_data.pop('password', None)
+            acads.append(acad_data)
+
+        return {"Acads": acads}, 200
+
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+      
+def update_filial(nome_filial, new_data):
+    try:
+        db = firestore.client()
+
+        academia_ref = db.collection('academias').where('nome_fantasia', '==', nome_filial).limit(1).stream()
         academia_doc = next(academia_ref, None)
 
         if not academia_doc:
             return {"error": "Academia não encontrada"}, 404
 
         academia_data = academia_doc.to_dict()
-        db.collection('academias').document(academia_data['nome_fantasia']).update(new_data)
+        db.collection('academias').document(nome_filial).update(new_data)
         return {"message": "Informações da academia atualizadas com sucesso!"}, 200
 
     except Exception as e:
@@ -180,7 +181,11 @@ def verify_acad(cnpj, password):
                 algorithm="HS256"
             )
             
-            return {"message": "Login bem-sucedido!", "token": token}, 200 
+            return {"message": "Login bem-sucedido!",
+                    "token": token,
+                    "cnpj": cnpj, 
+                    "email": user_data['email'],
+                    "telefone": user_data['telefone']}, 200 
         else:    
             return {"error": "Senha incorreta"}, 401
 

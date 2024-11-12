@@ -3,6 +3,7 @@ from firebase_admin import firestore
 from datetime import datetime, timedelta
 import jwt
 import bcrypt
+from .geo_services import geolocation_function
 
 SECRET_KEY = "sua_chave_secreta_super_secreta"
 
@@ -56,14 +57,21 @@ def add_filial(cnpj_matriz, nome_fantasia, endereco, lotacao):
     try:
         db = firestore.client()
      
-    
+        resultado_geolocalizacao = geolocation_function([endereco])
+        
+        if resultado_geolocalizacao and 'latitude' in resultado_geolocalizacao[0] and 'longitude' in resultado_geolocalizacao[0]:
+            latitude = resultado_geolocalizacao[0]['latitude']
+            longitude = resultado_geolocalizacao[0]['longitude']
+        else:
+            return {"error": "Não foi possível obter as coordenadas do endereço."}
+            
         user_data = {
             'nome_fantasia': nome_fantasia,
             'endereco': endereco,
             'cnpj_matriz': cnpj_matriz,
             'lotacao': lotacao,
-            'latitude': '',
-            'longitude':  '',
+            'latitude': latitude,
+            'longitude':  longitude,
         }
 
         db.collection('academias').document(nome_fantasia).set(user_data)
@@ -158,7 +166,7 @@ def verify_acad(cnpj, password):
         db = firestore.client()
 
         
-        user_ref = db.collection('academias').where('cnpj', '==', cnpj).limit(1).stream()
+        user_ref = db.collection('sedes').where('cnpj', '==', cnpj).limit(1).stream()
         user_doc = next(user_ref, None)
 
 

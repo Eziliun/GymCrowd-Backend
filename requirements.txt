@@ -1,7 +1,7 @@
 Flask
 firebase-admin
 python-dotenv
-PyJWT
+pyjwt
 bcrypt
 datetime
 flask_cors

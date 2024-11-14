@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 
 from .firestore_services import add_filial, add_sede, add_acad, get_acad, update_filial, delete_acad, verify_user, \
-    verify_acad, add_user, get_all_users, get_user, get_all_acads, update_sede
+    verify_acad, add_user, get_all_users, get_user, get_all_acads, update_sede, get_all_filiais
 from .decorators import token_required
 
 auth_bp = Blueprint('auth', __name__)
@@ -66,6 +66,16 @@ def get_all_acads_route():
         return jsonify(response), status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@auth_bp.route('/get_all_filiais/<cnpj_matriz>', methods=['GET'])
+def get_all_filiais_route(cnpj_matriz):
+    try:
+        response, status_code = get_all_filiais(cnpj_matriz)
+        return jsonify(response), status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 @auth_bp.route('/update_sede/<string:cnpj>', methods=['PUT'])

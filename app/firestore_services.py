@@ -132,6 +132,32 @@ def get_all_filiais(cnpj_matriz):
     except Exception as e:
         return {"error": str(e)}, 500
 
+def update_sede(cnpj, new_data):
+    try:
+        db = firestore.client()
+
+        sede_ref = db.collection('sedes').where('cnpj', '==', cnpj).limit(1).stream()
+        sede_doc = next(sede_ref, None)
+
+        if not sede_doc:
+            return {"error": "Sede não encontrada"}, 404
+
+        db.collection('sedes').document(cnpj).update(new_data)
+
+        updated_sede = db.collection('sedes').document(cnpj).get()
+        updated_data = updated_sede.to_dict()
+
+        return {
+            "message": "Informações da sede atualizadas com sucesso!",
+            "nome_fantasia": updated_data.get("nome_fantasia"),
+            "telefone": updated_data.get("telefone"),
+            "email": updated_data.get("email")
+        }, 200
+
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
       
 def update_filial(nome_filial, new_data):
     try:

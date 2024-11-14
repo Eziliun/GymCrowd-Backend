@@ -120,7 +120,7 @@ def get_all_filiais(cnpj_matriz):
         db = firestore.client()
 
         acads = []
-        acads_ref = db.collection('academias').where('cnpj_matriz' == cnpj_matriz).stream()
+        acads_ref = db.collection('academias').where('cnpj_matriz', '==', cnpj_matriz).stream()
         for acad in acads_ref:
             acad_data = acad.to_dict()
             acad_data['id'] = acad.id

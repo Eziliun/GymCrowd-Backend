@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 
-from .firestore_services import add_filial, add_sede, add_acad, get_acad, update_filial, delete_acad, verify_user, verify_acad, add_user, get_all_users, get_user, get_all_acads
+from .firestore_services import add_filial, add_sede, add_acad, get_acad, update_filial, delete_acad, verify_user, \
+    verify_acad, add_user, get_all_users, get_user, get_all_acads, update_sede
 from .decorators import token_required
 
 auth_bp = Blueprint('auth', __name__)
@@ -63,6 +64,21 @@ def get_all_acads_route():
     try:
         response, status_code = get_all_acads()
         return jsonify(response), status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@auth_bp.route('/update_sede/<string:cnpj>', methods=['PUT'])
+def update_sede_route(cnpj):
+    try:
+        data = request.get_json()
+
+        if not data or not isinstance(data, dict):
+            return jsonify({"error": "Dados atualizados devem ser fornecidos em formato JSON."}), 400
+
+        response, status_code = update_sede(cnpj, data)
+        return jsonify(response), status_code
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 
 from .firestore_services import add_filial, add_sede, add_acad, get_acad, update_filial, delete_acad, verify_user, \
-    verify_acad, add_user, get_all_users, get_user, get_all_acads, update_sede, get_all_filiais
+    verify_acad, add_user, get_all_users, get_user, get_all_acads, update_sede, get_all_filiais, delete_filial_by_name
 from .decorators import token_required
 
 auth_bp = Blueprint('auth', __name__)
@@ -67,12 +67,37 @@ def get_all_acads_route():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@auth_bp.route('/delete-filial/<nome_filial>', methods=['OPTIONS', 'DELETE'])
+def delete_filial_by_name_route(nome_filial):
+    if request.method == 'OPTIONS':
+        return '', 200
+    response, status_code = delete_filial_by_name(nome_filial)
+    return jsonify(response), status_code
+
 
 @auth_bp.route('/get_all_filiais/<cnpj_matriz>', methods=['GET'])
 def get_all_filiais_route(cnpj_matriz):
     try:
         response, status_code = get_all_filiais(cnpj_matriz)
         return jsonify(response), status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@auth_bp.route('/update_filial/<nome_fantasia>', methods=['PUT'])
+def update_filial_route(nome_fantasia):
+    try:
+        data = request.get_json()
+
+        if not data or not isinstance(data, dict):
+            return jsonify({"error": "Dados atualizados devem ser fornecidos em formato JSON."}), 400
+
+        if not any(key in data for key in ['endereco', 'lotacao']):
+            return jsonify({"error": "Os campos 'endereco' ou 'lotacao' são obrigatórios para atualização."}), 400
+
+        response, status_code = update_filial(nome_fantasia, data)
+        return jsonify(response), status_code
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

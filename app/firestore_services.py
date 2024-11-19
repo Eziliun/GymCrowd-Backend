@@ -79,6 +79,50 @@ def add_filial(cnpj_matriz, nome_fantasia, endereco, lotacao):
     except Exception as e:
         return {"error": str(e)}
 
+def delete_filial_by_name(nome_filial):
+    try:
+        db = firestore.client()
+
+        filial_ref = db.collection('academias').where('nome_fantasia', '==', nome_filial).limit(1).stream()
+        filial_doc = next(filial_ref, None)
+
+        if not filial_doc:
+            return {"error": "Filial não encontrada"}, 404
+
+        db.collection('academias').document(filial_doc.id).delete()
+
+        return {"message": "Filial excluída com sucesso!"}, 200
+
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+def update_filial(nome_fantasia, new_data):
+    try:
+        db = firestore.client()
+
+        filial_ref = db.collection('academias').where('nome_fantasia', '==', nome_fantasia).limit(1).stream()
+        filial_doc = next(filial_ref, None)
+
+        if not filial_doc:
+            return {"error": "Filial não encontrada"}, 404
+
+        db.collection('academias').document(filial_doc.id).update(new_data)
+
+        updated_filial = db.collection('academias').document(filial_doc.id).get()
+        updated_data = updated_filial.to_dict()
+
+        return {
+            "message": "Informações da filial atualizadas com sucesso!",
+            "nome_fantasia": updated_data.get("nome_fantasia"),
+            "endereco": updated_data.get("endereco"),
+            "lotacao": updated_data.get("lotacao")
+        }, 200
+
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+
+
     
 def get_acad(cnpj):
     try:
@@ -158,7 +202,7 @@ def update_sede(cnpj, new_data):
         return {"error": str(e)}, 500
 
 
-      
+
 def update_filial(nome_filial, new_data):
     try:
         db = firestore.client()
@@ -219,6 +263,7 @@ def verify_acad(cnpj, password):
                     "token": token,
                     "cnpj": cnpj, 
                     "email": user_data['email'],
+                    "nome_fantasia": user_data.get('nome_fantasia'),
                     "telefone": user_data['telefone']}, 200 
         else:    
             return {"error": "Senha incorreta"}, 401

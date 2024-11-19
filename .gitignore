@@ -1,0 +1,55 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environment
+venv/
+env/
+
+# Environment variables file
+.env
+
+# Firebase credentials
+firebase_credentials.json
+
+# Logs
+*.log
+logs/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE-specific files
+.vscode/
+.idea/
+
+# Test artifacts
+*.coverage
+coverage.xml
+*.pytest_cache/
+.tox/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+*.orig
+
+# Packages
+*.tar.gz
+*.zip
+
+# Ignore .env.production or other variations (optional)
+*.env.*
+

@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 
+from .algoritimo import pesquisar_no_google_maps
 from .firestore_services import add_filial, add_sede, add_acad, get_acad, update_filial, delete_acad, verify_user, \
     verify_acad, add_user, get_all_users, get_user, get_all_acads, update_sede, get_all_filiais, delete_filial_by_name
 from .decorators import token_required
@@ -64,6 +65,25 @@ def get_all_acads_route():
     try:
         response, status_code = get_all_acads()
         return jsonify(response), status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@auth_bp.route('/pesquisar_rotas', methods=['POST'])
+def pesquisar_rotas():
+    try:
+        data = request.get_json()
+        endereco_1 = data.get("endereco", "")
+
+        if not endereco_1:
+            return jsonify({"error": "Endereço não fornecido"}), 400
+
+        resultado_academias = pesquisar_no_google_maps(endereco_1)
+
+        if not resultado_academias:
+            return jsonify({"error": "Não foi possível obter resultados"}), 500
+
+        return jsonify({"academias": resultado_academias}), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

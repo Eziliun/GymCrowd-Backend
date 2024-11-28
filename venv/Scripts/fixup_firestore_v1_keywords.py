@@ -1,4 +1,4 @@
-#!C:\Users\wilian\PycharmProjects\GymCrowd-Backend\venv\Scripts\python.exe
+#!C:\Users\Dimitri\PycharmProjects\GymCrowd-Backend\venv\Scripts\python.exe
 # -*- coding: utf-8 -*-
 # Copyright 2024 Google LLC
 #
